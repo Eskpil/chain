@@ -1,5 +1,5 @@
 project:
-  name: "Test",
+  name: "Test"
   procedures: 
-      - "src/"
+      - "src"
 

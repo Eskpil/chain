@@ -1,5 +1,5 @@
 /*
-Copyright ÃÂ© 2022 NAME HERE <EMAIL ADDRESS>
+Copyright ÃÂÃÂÃÂÃÂ© 2022 NAME HERE <EMAIL ADDRESS>
 
 */
 package cmd

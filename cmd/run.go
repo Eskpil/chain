@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"chain/compilers"
-	"chain/procedures"
+	"chain/context"
 	"chain/structures"
 	"fmt"
 	"os"
@@ -21,6 +20,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		if len(args) < 1 {
 			fmt.Println("Insufficent arguments, expected filename argument.")
 			return
@@ -33,53 +33,66 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		procedure := structures.ProcedureStructure{}
+		isProcedure, _ := cmd.Flags().GetBool("procedure")
 
-		err = yaml.Unmarshal(data, &procedure)
-
-		if err != nil {
-			fmt.Printf("Unexpected error when unmarshaling data: %s\n", err)
-			return
+		scope := context.Scope{
+			Parent:    nil,
+			Prefix:    ".",
+			Libraries: []context.Library{},
 		}
 
-		compiler := compilers.Clang{
-			Path: "/usr/bin/clang",
-		}
+		if isProcedure {
+			procedure := structures.ProcedureStructure{}
 
-		buildProcedure := procedures.BuildProcedure{
-			Files:    procedure.Procedure.Build.Files,
-			Compiler: compiler,
-		}
+			err = yaml.Unmarshal(data, &procedure)
 
-		var target procedures.Target
+			if err != nil {
+				fmt.Printf("Unexpected error when unmarshaling data: %s\n", err)
+				return
+			}
 
-		if procedure.Procedure.Link.Target == "library" {
-			target = procedures.Library
+			scope.RunProcedure(procedure)
 		} else {
-			target = procedures.Binary
-		}
+			project := structures.ProjectStructure{}
 
-		linkProcedure := procedures.LinkProcedure{
-			Files:  procedure.Procedure.Link.Files,
-			Target: target,
-			Into:   procedure.Procedure.Link.Into,
-			Linker: compiler,
-		}
+			err = yaml.Unmarshal(data, &project)
 
-		err = buildProcedure.RunProcedure()
+			if err != nil {
+				fmt.Printf("Unexpected error when unmarshaling data: %s\n", err)
+				return
+			}
 
-		if err != nil {
-			return
-		}
+			for _, s := range project.Project.Procedures {
+				filepath := fmt.Sprintf("%s/procedure.yml", s)
 
-		err = linkProcedure.RunProcedure()
+				data, err = os.ReadFile(filepath)
 
-		if err != nil {
-			return
+				if err != nil {
+					fmt.Printf("Unexpected error when reading from file: %s: %s\n", filepath)
+					return
+				}
+
+				procedure := structures.ProcedureStructure{}
+
+				err := yaml.Unmarshal(data, &procedure)
+
+				if err != nil {
+					fmt.Printf("Unexpected error when unmarshaling data: %s\n", err)
+					return
+				}
+
+				childScope := context.Scope{}
+
+				childScope.InheritFrom(scope, s)
+
+				childScope.RunProcedure(procedure)
+			}
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
+
+	runCmd.Flags().BoolP("procedure", "p", false, "Tell Chain we only wan't to run this procedure")
 }
