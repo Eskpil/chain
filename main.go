@@ -9,7 +9,6 @@ package main
 import (
 	"chain/compilers"
 	"chain/procedures"
-	"fmt"
 	"os"
 )
 
@@ -25,8 +24,9 @@ func main() {
 
 	link := procedures.LinkProcedure{
 		Linker: clang,
+		Target: procedures.Library,
 		Files:  []string{"test.o"},
-		Into:   "test",
+		Into:   "test.so",
 	}
 
 	// All build procedures will be ran scoped when the command build is called.
@@ -41,7 +41,4 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
-
-	fmt.Println(build)
-	fmt.Println(link)
 }

@@ -1,2 +1,3 @@
-./test
-./test.c
+test
+test.o
+test.so

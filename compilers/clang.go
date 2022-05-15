@@ -26,7 +26,7 @@ func (c Clang) Compile(in string, out string) error {
 	return nil
 }
 
-func (c Clang) Link(in []string, out string) error {
+func (c Clang) LinkBinary(in []string, out string) error {
 	args := []string{"-o", out, strings.Join(in, " ")}
 
 	cmd := exec.Command(c.Path, args...)
@@ -37,6 +37,23 @@ func (c Clang) Link(in []string, out string) error {
 
 	if err != nil {
 		fmt.Printf("Error when linking: %s\n", output)
+		return err
+	}
+
+	return nil
+}
+
+func (c Clang) LinkLibrary(in []string, out string) error {
+	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out, strings.Join(in, " ")}
+
+	cmd := exec.Command(c.Path, args...)
+
+	cmd.Env = os.Environ()
+
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		fmt.Printf("Error when linking dynamic library: %s\n", output)
 		return err
 	}
 

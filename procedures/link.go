@@ -1,13 +1,43 @@
 package procedures
 
-import "chain/compilers"
+import (
+	"chain/compilers"
+	"fmt"
+	"os"
+)
+
+type Target int64
+
+const (
+	Binary  Target = iota
+	Library Target = iota
+)
 
 type LinkProcedure struct {
 	Files  []string
 	Into   string
+	Target Target
 	Linker compilers.Compiler
 }
 
 func (p LinkProcedure) RunProcedure() error {
-	return p.Linker.Link(p.Files, p.Into)
+	var err error
+	if p.Target == Library {
+		fmt.Println("Linking Library")
+		err = p.Linker.LinkLibrary(p.Files, p.Into)
+	} else {
+		fmt.Println("Linking Binary")
+		err = p.Linker.LinkBinary(p.Files, p.Into)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// Remove all the object files as we dont really need them.
+	for _, s := range p.Files {
+		os.Remove(s)
+	}
+
+	return nil
 }
