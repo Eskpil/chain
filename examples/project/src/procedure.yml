@@ -1,0 +1,9 @@
+procedure:
+  name: "src"
+  build:
+    files:
+      - "test.c"
+  link:
+    files:
+      - "test.o"
+    into: "test"
