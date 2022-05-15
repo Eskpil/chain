@@ -33,11 +33,14 @@ func main() {
 	err := build.RunProcedure()
 
 	if err != nil {
-		fmt.Println("Failed to run build procedure")
 		os.Exit(1)
 	}
 
 	err = link.RunProcedure()
+
+	if err != nil {
+		os.Exit(1)
+	}
 
 	fmt.Println(build)
 	fmt.Println(link)

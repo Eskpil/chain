@@ -9,5 +9,5 @@ type LinkProcedure struct {
 }
 
 func (p LinkProcedure) RunProcedure() error {
-	return nil
+	return p.Linker.Link(p.Files, p.Into)
 }
