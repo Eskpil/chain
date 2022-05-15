@@ -1,0 +1,15 @@
+procedure:
+  name: "Library"
+  build:
+    files: 
+      - "library.c"
+  link:
+    files:
+      - "library.o"
+    target: "library"
+    into: "library.so"
+  library:
+    name: "EpicLibrary"
+    from: "library.so"
+  export:
+    - "EpicLibrary"

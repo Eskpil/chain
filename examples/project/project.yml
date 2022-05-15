@@ -1,5 +1,6 @@
 project:
   name: "Test"
   procedures: 
+      - "library"
       - "src"
 

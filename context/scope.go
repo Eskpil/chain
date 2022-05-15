@@ -5,18 +5,18 @@ import (
 	"chain/procedures"
 	"chain/structures"
 	"fmt"
+	"os"
 	"path"
 )
 
 type Scope struct {
 	Parent    *Scope
 	Prefix    string
-	Libraries []Library
+	Libraries []compilers.Library
 }
 
-func (s *Scope) InheritFrom(parent Scope, prefix string) {
-	s.Parent = &parent
-
+func (s *Scope) InheritFrom(parent *Scope, prefix string) {
+	s.Parent = parent
 	s.Prefix = path.Join(parent.Prefix, prefix)
 
 	for _, l := range parent.Libraries {
@@ -76,15 +76,37 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	}
 
 	linkFiles := []string{}
+	libraries := []compilers.Library{}
 
 	for _, f := range procedure.Procedure.Link.Files {
 		linkFiles = append(linkFiles, path.Join(s.Prefix, f))
 	}
 
+	for _, with := range procedure.Procedure.Link.With {
+		var result *compilers.Library = &compilers.Library{}
+
+		fmt.Println("My.Libraries: ", s.Libraries)
+
+		for _, library := range s.Libraries {
+			if library.Name == with {
+				result = &library
+			}
+		}
+
+		if result != nil {
+			libraries = append(libraries, *result)
+		} else {
+			fmt.Printf("Library: %s not found in current scope, have you forgotten to export it?\n", with)
+		}
+	}
+
+	libraryPath := path.Join(s.Prefix, procedure.Procedure.Link.Into)
+
 	linkProcedure := procedures.LinkProcedure{
 		Files:  linkFiles,
 		Target: target,
-		Into:   path.Join(s.Prefix, procedure.Procedure.Link.Into),
+		With:   libraries,
+		Into:   libraryPath,
 		Linker: compiler,
 	}
 
@@ -98,5 +120,32 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 
 	if err != nil {
 		return
+	}
+
+	if procedure.Procedure.Library != nil && linkProcedure.Target == procedures.Library {
+		library := compilers.Library{}
+		var cwd string
+
+		cwd, err = os.Getwd()
+
+		if err != nil {
+			fmt.Println("Failed to get current working directoty: ", err)
+			return
+		}
+
+		library.Name = procedure.Procedure.Library.Name
+		library.Path = path.Join(cwd, libraryPath)
+
+		s.Libraries = append(s.Libraries, library)
+
+		fmt.Println("Libraries: ", s.Libraries)
+	}
+
+	if procedure.Procedure.Export != nil {
+		for _, e := range procedure.Procedure.Export {
+			s.ExportLibrary(e)
+		}
+
+		fmt.Println("Parent.Libraries: ", s.Parent.Libraries)
 	}
 }

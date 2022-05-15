@@ -36,9 +36,8 @@ to quickly create a Cobra application.`,
 		isProcedure, _ := cmd.Flags().GetBool("procedure")
 
 		scope := context.Scope{
-			Parent:    nil,
-			Prefix:    ".",
-			Libraries: []context.Library{},
+			Parent: nil,
+			Prefix: ".",
 		}
 
 		if isProcedure {
@@ -83,7 +82,7 @@ to quickly create a Cobra application.`,
 
 				childScope := context.Scope{}
 
-				childScope.InheritFrom(scope, s)
+				childScope.InheritFrom(&scope, s)
 
 				childScope.RunProcedure(procedure)
 			}

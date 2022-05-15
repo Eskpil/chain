@@ -7,3 +7,5 @@ procedure:
     files:
       - "test.o"
     into: "test"
+    with:
+      - "EpicLibrary"

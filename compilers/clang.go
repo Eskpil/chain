@@ -26,8 +26,18 @@ func (c Clang) Compile(in string, out string) error {
 	return nil
 }
 
-func (c Clang) LinkBinary(in []string, out string) error {
-	args := []string{"-o", out, strings.Join(in, " ")}
+func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
+
+	args := []string{"-o", out}
+
+	for _, library := range libraries {
+		// args = append(args, "-L")
+		args = append(args, library.Path)
+	}
+
+	args = append(args, in...)
+
+	fmt.Println("Args: ", args)
 
 	cmd := exec.Command(c.Path, args...)
 
@@ -43,8 +53,13 @@ func (c Clang) LinkBinary(in []string, out string) error {
 	return nil
 }
 
-func (c Clang) LinkLibrary(in []string, out string) error {
+func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
 	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out, strings.Join(in, " ")}
+
+	for _, library := range libraries {
+		args = append(args, "-l")
+		args = append(args, library.Path)
+	}
 
 	cmd := exec.Command(c.Path, args...)
 
