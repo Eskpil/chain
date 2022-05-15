@@ -2,7 +2,6 @@ package procedures
 
 import (
 	"chain/compilers"
-	"fmt"
 	"os"
 )
 
@@ -23,10 +22,8 @@ type LinkProcedure struct {
 func (p LinkProcedure) RunProcedure() error {
 	var err error
 	if p.Target == Library {
-		fmt.Println("Linking Library")
 		err = p.Linker.LinkLibrary(p.Files, p.Into)
 	} else {
-		fmt.Println("Linking Binary")
 		err = p.Linker.LinkBinary(p.Files, p.Into)
 	}
 
