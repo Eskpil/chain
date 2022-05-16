@@ -85,12 +85,18 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	for _, with := range procedure.Procedure.Link.With {
 		var result *compilers.Library = &compilers.Library{}
 
-		fmt.Println("My.Libraries: ", s.Libraries)
-
-		for _, library := range s.Libraries {
-			if library.Name == with {
-				result = &library
+		if with.Kind == "exported" {
+			for _, library := range s.Libraries {
+				if library.Name == with.Name {
+					result = &library
+				}
 			}
+		} else if with.Kind == "compiler" {
+			result.Name = with.Name
+			result.Path = ""
+			result.Target = ""
+		} else if with.Kind == "pkg-config" {
+
 		}
 
 		if result != nil {
@@ -124,28 +130,26 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 
 	if procedure.Procedure.Library != nil && linkProcedure.Target == procedures.Library {
 		library := compilers.Library{}
+
 		var cwd string
 
 		cwd, err = os.Getwd()
 
 		if err != nil {
-			fmt.Println("Failed to get current working directoty: ", err)
+			fmt.Println("Failed to get current working directory: ", err)
 			return
 		}
 
 		library.Name = procedure.Procedure.Library.Name
-		library.Path = path.Join(cwd, libraryPath)
+		library.Path = path.Join(cwd, s.Prefix)
+		library.Target = procedure.Procedure.Link.Target + ".so"
 
 		s.Libraries = append(s.Libraries, library)
-
-		fmt.Println("Libraries: ", s.Libraries)
 	}
 
 	if procedure.Procedure.Export != nil {
 		for _, e := range procedure.Procedure.Export {
 			s.ExportLibrary(e)
 		}
-
-		fmt.Println("Parent.Libraries: ", s.Parent.Libraries)
 	}
 }

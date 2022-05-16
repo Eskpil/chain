@@ -28,11 +28,17 @@ func (c Clang) Compile(in string, out string) error {
 
 func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 
-	args := []string{"-o", out}
+	args := []string{"-o", out, "-Wl"}
+	// clang++ Main.cpp -o foo libchaiscript_stdlib-5.3.1.so -Wl,-rpath,/absolute/path
 
 	for _, library := range libraries {
-		// args = append(args, "-L")
-		args = append(args, library.Path)
+		if len(library.Path) > 0 {
+			args = append(args, fmt.Sprintf("-Wl,-rpath,%s", library.Path+"/"))
+			args = append(args, library.Path+"/"+library.Target)
+		} else {
+			args = append(args, "-l")
+			args = append(args, library.Name)
+		}
 	}
 
 	args = append(args, in...)

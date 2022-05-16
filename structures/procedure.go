@@ -10,7 +10,10 @@ type ProcedureStructure struct {
 			Files  []string
 			Target string
 			Into   string
-			With   []string
+			With   []struct {
+				Name string
+				Kind string
+			}
 		}
 		Library *struct {
 			Name string

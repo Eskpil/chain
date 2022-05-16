@@ -8,4 +8,8 @@ procedure:
       - "test.o"
     into: "test"
     with:
-      - "EpicLibrary"
+      - name: "EpicLibrary"
+        kind: "exported"
+
+      - name: "m"
+        kind: "compiler"
