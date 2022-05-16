@@ -11,8 +11,14 @@ type Clang struct {
 	Path string
 }
 
-func (c Clang) Compile(in string, out string) error {
-	cmd := exec.Command(c.Path, "-c", "-o", out, in)
+func (c Clang) Compile(in string, out string, cflags []string) error {
+	args := []string{"-o", out, "-c", in}
+
+	for _, flag := range cflags {
+		args = append(args, flag)
+	}
+
+	cmd := exec.Command(c.Path, args...)
 
 	cmd.Env = os.Environ()
 
@@ -27,23 +33,15 @@ func (c Clang) Compile(in string, out string) error {
 }
 
 func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
-
-	args := []string{"-o", out, "-Wl"}
-	// clang++ Main.cpp -o foo libchaiscript_stdlib-5.3.1.so -Wl,-rpath,/absolute/path
+	args := []string{"-o", out}
 
 	for _, library := range libraries {
-		if len(library.Path) > 0 {
-			args = append(args, fmt.Sprintf("-Wl,-rpath,%s", library.Path+"/"))
-			args = append(args, library.Path+"/"+library.Target)
-		} else {
-			args = append(args, "-l")
-			args = append(args, library.Name)
+		for _, flag := range library.Libs {
+			args = append(args, flag)
 		}
 	}
 
 	args = append(args, in...)
-
-	fmt.Println("Args: ", args)
 
 	cmd := exec.Command(c.Path, args...)
 
@@ -63,8 +61,12 @@ func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
 	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out, strings.Join(in, " ")}
 
 	for _, library := range libraries {
-		args = append(args, "-l")
-		args = append(args, library.Path)
+		for _, flag := range library.Cflags {
+			args = append(args, flag)
+		}
+		for _, flag := range library.Cflags {
+			args = append(args, flag)
+		}
 	}
 
 	cmd := exec.Command(c.Path, args...)

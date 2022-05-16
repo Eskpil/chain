@@ -2,6 +2,7 @@ package context
 
 import (
 	"chain/compilers"
+	"chain/pkgconfig"
 	"chain/procedures"
 	"chain/structures"
 	"fmt"
@@ -52,35 +53,7 @@ func (s *Scope) ExportLibrary(name string) {
 func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	var err error
 
-	compiler := compilers.Clang{
-		Path: "/usr/bin/clang",
-	}
-
-	buildFiles := []string{}
-
-	for _, f := range procedure.Procedure.Build.Files {
-		buildFiles = append(buildFiles, path.Join(s.Prefix, f))
-	}
-
-	buildProcedure := procedures.BuildProcedure{
-		Files:    buildFiles,
-		Compiler: compiler,
-	}
-
-	var target procedures.Target
-
-	if procedure.Procedure.Link.Target == "library" {
-		target = procedures.Library
-	} else {
-		target = procedures.Binary
-	}
-
-	linkFiles := []string{}
 	libraries := []compilers.Library{}
-
-	for _, f := range procedure.Procedure.Link.Files {
-		linkFiles = append(linkFiles, path.Join(s.Prefix, f))
-	}
 
 	for _, with := range procedure.Procedure.Link.With {
 		var result *compilers.Library = &compilers.Library{}
@@ -93,10 +66,18 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 			}
 		} else if with.Kind == "compiler" {
 			result.Name = with.Name
-			result.Path = ""
-			result.Target = ""
+			result.Libs = []string{fmt.Sprintf("-l%s", with.Name)}
 		} else if with.Kind == "pkg-config" {
+			var pkg *pkgconfig.Package
+			pkg, err = pkgconfig.FindPkg(with.Name)
 
+			if err != nil {
+				return
+			}
+
+			result.Libs = pkg.Libs
+			result.Name = pkg.Name
+			result.Cflags = pkg.Cflags
 		}
 
 		if result != nil {
@@ -104,6 +85,44 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 		} else {
 			fmt.Printf("Library: %s not found in current scope, have you forgotten to export it?\n", with)
 		}
+	}
+
+	compiler := compilers.Clang{
+		Path: "/usr/bin/clang",
+	}
+
+	buildFiles := []string{}
+
+	var cflags []string
+
+	for _, library := range libraries {
+		for _, flag := range library.Cflags {
+			cflags = append(cflags, flag)
+		}
+	}
+
+	for _, f := range procedure.Procedure.Build.Files {
+		buildFiles = append(buildFiles, path.Join(s.Prefix, f))
+	}
+
+	buildProcedure := procedures.BuildProcedure{
+		Files:    buildFiles,
+		Cflags:   cflags,
+		Compiler: compiler,
+	}
+
+	var target procedures.Target
+
+	if procedure.Procedure.Link.Target == "library" {
+		target = procedures.Library
+	} else {
+		target = procedures.Binary
+	}
+
+	linkFiles := []string{}
+
+	for _, f := range procedure.Procedure.Link.Files {
+		linkFiles = append(linkFiles, path.Join(s.Prefix, f))
 	}
 
 	libraryPath := path.Join(s.Prefix, procedure.Procedure.Link.Into)
@@ -141,8 +160,10 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 		}
 
 		library.Name = procedure.Procedure.Library.Name
-		library.Path = path.Join(cwd, s.Prefix)
-		library.Target = procedure.Procedure.Link.Target + ".so"
+
+		libpath := path.Join(cwd, s.Prefix)
+
+		library.Libs = []string{fmt.Sprintf("-Wl,-rpath,%s", libpath), fmt.Sprintf("%s/%s.so", libpath, procedure.Procedure.Link.Target)}
 
 		s.Libraries = append(s.Libraries, library)
 	}

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+clang -Wl,-rpath, /home/linus/Projects/chain/examples/project/library  -I/usr/local/include/cairo -I/usr/include/lzo -I/usr/include/libpng16 -I/usr/include/freetype2 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/sysprof-4 -lcairo -pthread -I/usr/include/pixman-1 ./test.c

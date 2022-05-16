@@ -13,3 +13,6 @@ procedure:
 
       - name: "m"
         kind: "compiler"
+
+      - name: "cairo"
+        kind: "pkg-config"
