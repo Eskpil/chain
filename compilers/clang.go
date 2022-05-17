@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 type Clang struct {
@@ -58,16 +57,15 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 }
 
 func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
-	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out, strings.Join(in, " ")}
+	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out}
 
 	for _, library := range libraries {
-		for _, flag := range library.Cflags {
-			args = append(args, flag)
-		}
-		for _, flag := range library.Cflags {
+		for _, flag := range library.Libs {
 			args = append(args, flag)
 		}
 	}
+
+	args = append(args, in...)
 
 	cmd := exec.Command(c.Path, args...)
 
