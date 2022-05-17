@@ -36,8 +36,9 @@ to quickly create a Cobra application.`,
 		isProcedure, _ := cmd.Flags().GetBool("procedure")
 
 		scope := context.Scope{
-			Parent: nil,
-			Prefix: ".",
+			Parent:   nil,
+			BuildDir: "bld",
+			Prefix:   ".",
 		}
 
 		if isProcedure {

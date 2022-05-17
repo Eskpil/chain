@@ -13,13 +13,23 @@ import (
 type Scope struct {
 	Parent    *Scope
 	Prefix    string
+	BuildDir  string
 	Libraries []compilers.Library
 }
 
 func (s *Scope) InheritFrom(parent *Scope, prefix string) {
-	s.Parent = parent
 	s.Prefix = path.Join(parent.Prefix, prefix)
+	s.BuildDir = path.Join(parent.BuildDir, prefix)
 
+	if _, err := os.Stat(parent.BuildDir); os.IsNotExist(err) {
+		os.Mkdir(parent.BuildDir, 0777)
+	}
+
+	if _, err := os.Stat(s.BuildDir); os.IsNotExist(err) {
+		os.Mkdir(s.BuildDir, 0777)
+	}
+
+	s.Parent = parent
 	for _, l := range parent.Libraries {
 		s.Libraries = append(s.Libraries, l)
 	}
@@ -107,6 +117,7 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 
 	buildProcedure := procedures.BuildProcedure{
 		Files:    buildFiles,
+		BuildDir: s.BuildDir,
 		Cflags:   cflags,
 		Compiler: compiler,
 	}
@@ -122,10 +133,10 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	linkFiles := []string{}
 
 	for _, f := range procedure.Procedure.Link.Files {
-		linkFiles = append(linkFiles, path.Join(s.Prefix, f))
+		linkFiles = append(linkFiles, path.Join(s.BuildDir, f))
 	}
 
-	libraryPath := path.Join(s.Prefix, procedure.Procedure.Link.Into)
+	libraryPath := path.Join(s.BuildDir, procedure.Procedure.Link.Into)
 
 	linkProcedure := procedures.LinkProcedure{
 		Files:  linkFiles,
@@ -150,18 +161,9 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	if procedure.Procedure.Library != nil && linkProcedure.Target == procedures.Library {
 		library := compilers.Library{}
 
-		var cwd string
-
-		cwd, err = os.Getwd()
-
-		if err != nil {
-			fmt.Println("Failed to get current working directory: ", err)
-			return
-		}
-
 		library.Name = procedure.Procedure.Library.Name
 
-		libpath := path.Join(cwd, s.Prefix)
+		libpath := s.BuildDir
 
 		library.Libs = []string{fmt.Sprintf("-Wl,-rpath,%s", libpath), fmt.Sprintf("%s/%s.so", libpath, procedure.Procedure.Link.Target)}
 
