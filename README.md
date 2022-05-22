@@ -6,8 +6,7 @@ YAML as it is easy to use and readable.
 
 ## Installation
 
-```
-shell
+```shell
 go build main.go
 sudo cp main /usr/local/bin/chain 
 ```
