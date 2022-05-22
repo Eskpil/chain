@@ -1,12 +1,14 @@
 procedure:
   name: "src"
   build:
+    compiler: "clang"
     files:
       - "test.c"
   link:
     files:
       - "test.o"
-    into: "test"
+    into: "bin"
+    linker: "clang"
     with:
       - name: "EpicLibrary"
         kind: "exported"

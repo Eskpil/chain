@@ -4,12 +4,14 @@ type ProcedureStructure struct {
 	Procedure struct {
 		Name  string
 		Build *struct {
-			Files []string
+			Compiler string
+			Files    []string
 		}
 		Link *struct {
 			Files  []string
 			Target string
 			Into   string
+			Linker string
 			With   []struct {
 				Name string
 				Kind string

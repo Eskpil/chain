@@ -3,4 +3,5 @@ project:
   procedures: 
       - "library"
       - "src"
+      - "rust"
 

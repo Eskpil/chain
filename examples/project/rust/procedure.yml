@@ -1,0 +1,6 @@
+procedure:
+  name: "rust"
+  build:
+    compiler: "rust"
+    files:
+      - "test.rs"

@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
-type Clang struct {
+type Rust struct {
 	Path string
 }
 
-func (c Clang) Compile(in string, out string, cflags []string) error {
-	args := []string{"-o", out, "-c", in}
+func (c Rust) Compile(in string, out string, cflags []string) error {
 
-	for _, flag := range cflags {
-		args = append(args, flag)
-	}
+	out = strings.Split(out, ".")[0]
+
+	args := []string{"-o", out, in}
 
 	cmd := exec.Command(c.Path, args...)
 
@@ -31,15 +31,10 @@ func (c Clang) Compile(in string, out string, cflags []string) error {
 	return nil
 }
 
-func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
+func (c Rust) LinkBinary(in []string, out string, libraries []Library) error {
 	args := []string{"-o", out}
 
-	for _, library := range libraries {
-		fmt.Println("Library.Libs: ", library.Libs)
-		for _, flag := range library.Libs {
-			args = append(args, flag)
-		}
-	}
+	// TODO: Link with libraries.
 
 	args = append(args, in...)
 
@@ -57,7 +52,7 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 	return nil
 }
 
-func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
+func (c Rust) LinkLibrary(in []string, out string, libraries []Library) error {
 	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out}
 
 	for _, library := range libraries {
