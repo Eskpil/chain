@@ -2,6 +2,7 @@ package context
 
 import (
 	"chain/compilers"
+	"chain/logger"
 	"chain/pkgconfig"
 	"chain/procedures"
 	"chain/structures"
@@ -36,6 +37,7 @@ func (s *Scope) InheritFrom(parent *Scope, prefix string) {
 }
 
 func (s *Scope) ExportLibrary(name string) {
+	logger.Info.Printf("Exporting: %s\n", name)
 	if s.Parent == nil {
 		fmt.Println("Current scope does not have a parent.")
 		return
@@ -50,8 +52,8 @@ func (s *Scope) ExportLibrary(name string) {
 	}
 
 	if 0 > result {
-		fmt.Println("Unable to find library in current scope: ", name)
-		return
+		logger.Error.Printf("Library: %s not found in current scope\n", name)
+		os.Exit(1)
 	}
 
 	library := s.Libraries[result]
@@ -60,6 +62,7 @@ func (s *Scope) ExportLibrary(name string) {
 }
 
 func (s Scope) FindLibrary(name string) {
+	logger.Info.Printf("Trying to find library: %s in current scope\n", name)
 	result := -1
 
 	for i, s := range s.Libraries {
@@ -69,17 +72,19 @@ func (s Scope) FindLibrary(name string) {
 	}
 
 	if 0 > result {
-		fmt.Println("Current scope does not contain library: ", name)
-		return
+		logger.Error.Printf("Current scope does not contain library: %s\n", name)
+		os.Exit(1)
 	}
+
+	logger.Info.Printf("Found library: %s in current scope\n", name)
 
 	library := s.Libraries[result]
 
 	s.Parent.Libraries = append(s.Parent.Libraries, library)
-	return
 }
 
 func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
+	logger.Info.Printf("Running procedure: %s\n", procedure.Procedure.Name)
 	var err error
 
 	libraries := []compilers.Library{}
@@ -102,18 +107,23 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 				pkg, err = pkgconfig.FindPkg(with.Name)
 
 				if err != nil {
+					fmt.Printf("Package: %s not found by pkg-config.\n", with.Name)
 					return
 				}
 
 				result.Libs = pkg.Libs
 				result.Name = pkg.Name
 				result.Cflags = pkg.Cflags
+			} else {
+				logger.Error.Printf("Unknown linking method: %s\n", with.Kind)
+				os.Exit(1)
 			}
 
 			if result != nil {
 				libraries = append(libraries, *result)
 			} else {
-				fmt.Printf("Library: %s not found in current scope, have you forgotten to export it?\n", with)
+				logger.Error.Printf("Library: %s not found in current scope, have you forgotten to export it?\n", with)
+				os.Exit(1)
 			}
 		}
 	}

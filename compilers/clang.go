@@ -1,7 +1,7 @@
 package compilers
 
 import (
-	"fmt"
+	"chain/logger"
 	"os"
 	"os/exec"
 )
@@ -11,6 +11,7 @@ type Clang struct {
 }
 
 func (c Clang) Compile(in string, out string, cflags []string) error {
+	logger.Info.Printf("Compiling: %s into: %s\n", in, out)
 	args := []string{"-o", out, "-c", in}
 
 	for _, flag := range cflags {
@@ -24,7 +25,8 @@ func (c Clang) Compile(in string, out string, cflags []string) error {
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		fmt.Printf("Error when compiling file: %s:\n%s", in, output)
+		logger.Error.Printf("Error when compiling file: %s into: %s\n", in, out)
+		logger.PrintError(string(output))
 		return err
 	}
 
@@ -32,10 +34,10 @@ func (c Clang) Compile(in string, out string, cflags []string) error {
 }
 
 func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
+	logger.Info.Printf("Linking binary: %s from: %v\n", out, in)
 	args := []string{"-o", out}
 
 	for _, library := range libraries {
-		fmt.Println("Library.Libs: ", library.Libs)
 		for _, flag := range library.Libs {
 			args = append(args, flag)
 		}
@@ -50,7 +52,8 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		fmt.Printf("Error when linking: %s\n", output)
+		logger.Error.Printf("Error when linking binary: %s\n", out)
+		logger.PrintError(string(output))
 		return err
 	}
 
@@ -58,6 +61,7 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 }
 
 func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
+	logger.Info.Printf("Linking library: %s from: %v\n", out, in)
 	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out}
 
 	for _, library := range libraries {
@@ -75,7 +79,8 @@ func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		fmt.Printf("Error when linking dynamic library: %s\n", output)
+		logger.Error.Printf("Error when linking dynamic library: %s\n", out)
+		logger.PrintError(string(output))
 		return err
 	}
 
