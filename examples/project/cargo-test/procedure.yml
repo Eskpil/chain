@@ -1,0 +1,10 @@
+procedure:
+  name: "pop"
+  build:
+    compiler: "cargo"
+    files:
+      - "test.rs"
+  link:
+    with:
+      - name: "wasmtime"
+        kind: "cargo"

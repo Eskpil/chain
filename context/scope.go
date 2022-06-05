@@ -1,6 +1,7 @@
 package context
 
 import (
+	"chain/cargo"
 	"chain/compilers"
 	"chain/logger"
 	"chain/pkgconfig"
@@ -83,6 +84,30 @@ func (s Scope) FindLibrary(name string) {
 	s.Parent.Libraries = append(s.Parent.Libraries, library)
 }
 
+func (s Scope) CargoProject(
+	libraries []compilers.Library,
+	procedure structures.ProcedureStructure) {
+	config := cargo.CargoConfig{}
+
+	cwd, err := os.Getwd()
+
+	if err != nil {
+		logger.Error.Printf("Unable to get current working directory\n")
+		logger.PrintError(fmt.Sprintf("%s", err))
+	}
+
+	config.Path = path.Join(s.Prefix, procedure.Procedure.Build.Files[0])
+	config.Path = path.Join(cwd, config.Path)
+	config.Name = *procedure.Procedure.Name
+
+	for _, lib := range libraries {
+		config.Dependencies = append(config.Dependencies, lib.Name)
+	}
+
+	config.GenerateInto(fmt.Sprintf("%s/Cargo.toml", s.BuildDir))
+	config.Execute(s.BuildDir)
+}
+
 func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	logger.Info.Printf("Running procedure: %s\n", *procedure.Procedure.Name)
 	var err error
@@ -102,6 +127,8 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 			} else if with.Kind == "compiler" {
 				result.Name = with.Name
 				result.Libs = []string{fmt.Sprintf("-l%s", with.Name)}
+			} else if with.Kind == "cargo" {
+				result.Name = with.Name
 			} else if with.Kind == "pkg-config" {
 				var pkg *pkgconfig.Package
 				pkg, err = pkgconfig.FindPkg(with.Name)
@@ -129,6 +156,12 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	}
 
 	compilerName := procedure.Procedure.Build.Compiler
+
+	if compilerName == "cargo" {
+		s.CargoProject(libraries, procedure)
+		return
+	}
+
 	compiler := compilers.CompilerFromName(compilerName)
 
 	buildFiles := []string{}
