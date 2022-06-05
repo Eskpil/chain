@@ -11,7 +11,7 @@ type Clang struct {
 }
 
 func (c Clang) Compile(in string, out string, cflags []string) error {
-	logger.Info.Printf("Compiling: %s into: %s\n", in, out)
+	logger.Info.Printf("Compiling: %s\n", in)
 	args := []string{"-o", out, "-c", in}
 
 	for _, flag := range cflags {
@@ -25,7 +25,7 @@ func (c Clang) Compile(in string, out string, cflags []string) error {
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		logger.Error.Printf("Error when compiling file: %s into: %s\n", in, out)
+		logger.Error.Printf("Error when compiling file: %s\n", in)
 		logger.PrintError(string(output))
 		return err
 	}
@@ -34,7 +34,7 @@ func (c Clang) Compile(in string, out string, cflags []string) error {
 }
 
 func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
-	logger.Info.Printf("Linking binary: %s from: %v\n", out, in)
+	logger.Info.Printf("Linking binary: %s\n", out)
 	args := []string{"-o", out}
 
 	for _, library := range libraries {
@@ -61,7 +61,7 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 }
 
 func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
-	logger.Info.Printf("Linking library: %s from: %v\n", out, in)
+	logger.Info.Printf("Linking library: %s\n", out)
 	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out}
 
 	for _, library := range libraries {

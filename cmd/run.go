@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"chain/context"
+	"chain/logger"
 	"chain/structures"
 	"fmt"
 	"os"
@@ -22,15 +23,16 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if len(args) < 1 {
-			fmt.Println("Insufficent arguments, expected filename argument.")
-			return
+			logger.Error.Printf("Insufficent arguments, expected filename argument\n")
+			os.Exit(1)
 		}
 
 		data, err := os.ReadFile(args[0])
 
 		if err != nil {
-			fmt.Printf("Unexpected error when reading from file: %s: %s\n", args[0], err)
-			return
+			logger.Error.Printf("Unexpected error when reading data\n")
+			logger.PrintError(fmt.Sprintf("%s\n", err))
+			os.Exit(1)
 		}
 
 		isProcedure, _ := cmd.Flags().GetBool("procedure")
@@ -47,8 +49,9 @@ to quickly create a Cobra application.`,
 			err = yaml.Unmarshal(data, &procedure)
 
 			if err != nil {
-				fmt.Printf("Unexpected error when unmarshaling data: %s\n", err)
-				return
+				logger.Error.Printf("Unexpected error when unmarshaling data\n")
+				logger.PrintError(fmt.Sprintf("%s\n", err))
+				os.Exit(1)
 			}
 
 			scope.RunProcedure(procedure)
@@ -58,18 +61,24 @@ to quickly create a Cobra application.`,
 			err = yaml.Unmarshal(data, &project)
 
 			if err != nil {
-				fmt.Printf("Unexpected error when unmarshaling data: %s\n", err)
-				return
+				logger.Error.Printf("Unexpected error when unmarshaling data\n")
+				logger.PrintError(fmt.Sprintf("%s\n", err))
+				os.Exit(1)
 			}
 
-			for _, s := range project.Project.Procedures {
+			project.Validate(args[0])
+
+			logger.Info.Printf("Running all procedures for project: %s\n", args[0])
+
+			for _, s := range *project.Project.Procedures {
 				filepath := fmt.Sprintf("%s/procedure.yml", s)
 
 				data, err = os.ReadFile(filepath)
 
 				if err != nil {
-					fmt.Printf("Unexpected error when reading from file: %s: %s\n", filepath)
-					return
+					logger.Error.Printf("Unexpected error when reading data\n")
+					logger.PrintError(fmt.Sprintf("%s\n", err))
+					os.Exit(1)
 				}
 
 				procedure := structures.ProcedureStructure{}
@@ -77,9 +86,12 @@ to quickly create a Cobra application.`,
 				err := yaml.Unmarshal(data, &procedure)
 
 				if err != nil {
-					fmt.Printf("Unexpected error when unmarshaling data: %s\n", err)
-					return
+					logger.Error.Printf("Unexpected error when unmarshaling data\n")
+					logger.PrintError(fmt.Sprintf("%s\n", err))
+					os.Exit(1)
 				}
+
+				procedure.Validate(filepath)
 
 				childScope := context.Scope{}
 

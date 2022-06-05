@@ -84,7 +84,7 @@ func (s Scope) FindLibrary(name string) {
 }
 
 func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
-	logger.Info.Printf("Running procedure: %s\n", procedure.Procedure.Name)
+	logger.Info.Printf("Running procedure: %s\n", *procedure.Procedure.Name)
 	var err error
 
 	libraries := []compilers.Library{}
