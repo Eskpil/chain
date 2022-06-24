@@ -1,0 +1,16 @@
+compilers:
+  - name: "clang"
+    path: "/usr/bin/clang"
+    language: "c/c++"
+    flags: 
+      - "-ggdb"
+      - "-O0"
+
+  - name: "rust"
+    path: "/usr/bin/rustc"
+    language: "rust"
+
+  - name: "linker"
+    path: "/usr/bin/clang"
+    language: "c/c++/rust"
+

@@ -9,7 +9,7 @@ procedure:
     files:
       - "test.o"
     into: "bin"
-    linker: "clang"
+    linker: "linker"
     with:
       - name: "EpicLibrary"
         kind: "exported"

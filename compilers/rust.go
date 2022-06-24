@@ -9,16 +9,19 @@ import (
 )
 
 type Rust struct {
-	Path string
+	Path  string
+	Flags []string
 }
 
 func (c Rust) Compile(in string, out string, cflags []string) error {
 	out = strings.Split(out, ".")[0]
-
 	args := []string{"-o", out, in}
 
-	cmd := exec.Command(c.Path, args...)
+	for _, flag := range c.Flags {
+		args = append(args, flag)
+	}
 
+	cmd := exec.Command(c.Path, args...)
 	cmd.Env = os.Environ()
 
 	output, err := cmd.CombinedOutput()

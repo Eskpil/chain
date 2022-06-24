@@ -7,12 +7,17 @@ import (
 )
 
 type Clang struct {
-	Path string
+	Path  string
+	Flags []string
 }
 
 func (c Clang) Compile(in string, out string, cflags []string) error {
 	logger.Info.Printf("Compiling: %s\n", in)
 	args := []string{"-o", out, "-c", in}
+
+	for _, flag := range c.Flags {
+		args = append(args, flag)
+	}
 
 	for _, flag := range cflags {
 		args = append(args, flag)
@@ -36,6 +41,10 @@ func (c Clang) Compile(in string, out string, cflags []string) error {
 func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 	logger.Info.Printf("Linking binary: %s\n", out)
 	args := []string{"-o", out}
+
+	for _, flag := range c.Flags {
+		args = append(args, flag)
+	}
 
 	for _, library := range libraries {
 		for _, flag := range library.Libs {
@@ -63,6 +72,10 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
 	logger.Info.Printf("Linking library: %s\n", out)
 	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out}
+
+	for _, flag := range c.Flags {
+		args = append(args, flag)
+	}
 
 	for _, library := range libraries {
 		for _, flag := range library.Libs {

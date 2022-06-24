@@ -17,6 +17,7 @@ type Scope struct {
 	Prefix    string
 	BuildDir  string
 	Libraries []compilers.Library
+	Compilers map[string]structures.Compiler
 }
 
 func (s *Scope) InheritFrom(parent *Scope, prefix string) {
@@ -30,6 +31,8 @@ func (s *Scope) InheritFrom(parent *Scope, prefix string) {
 	if _, err := os.Stat(s.BuildDir); os.IsNotExist(err) {
 		os.Mkdir(s.BuildDir, 0777)
 	}
+
+	s.Compilers = parent.Compilers
 
 	s.Parent = parent
 	for _, l := range parent.Libraries {
@@ -162,7 +165,15 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 		return
 	}
 
-	compiler := compilers.CompilerFromName(compilerName)
+	structure := structures.Compiler{}
+
+	for _, comp := range s.Compilers {
+		if comp.Name == compilerName {
+			structure = comp
+		}
+	}
+
+	compiler := compilers.CompilerFromStructure(structure)
 
 	buildFiles := []string{}
 
@@ -212,7 +223,15 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 			linkFiles = append(linkFiles, path.Join(s.BuildDir, f))
 		}
 
-		linker := compilers.CompilerFromName(procedure.Procedure.Link.Linker)
+		structure := structures.Compiler{}
+
+		for _, comp := range s.Compilers {
+			if comp.Name == compilerName {
+				structure = comp
+			}
+		}
+
+		linker := compilers.CompilerFromStructure(structure)
 
 		libraryPath := path.Join(s.BuildDir, procedure.Procedure.Link.Into)
 
