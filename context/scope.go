@@ -185,7 +185,7 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 		}
 	}
 
-	if (compilerName == "clang" || compilerName == "gcc") && procedure.Procedure.Build.Headers != nil {
+	if (compiler.Language == "c/c++") && procedure.Procedure.Build.Headers != nil {
 		if *procedure.Procedure.Build.Headers == "." {
 			cflags = append(cflags, fmt.Sprintf("-I%s", s.Prefix))
 		}
