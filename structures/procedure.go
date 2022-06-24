@@ -10,6 +10,7 @@ type ProcedureStructure struct {
 		Name  *string
 		Build *struct {
 			Compiler string
+			Headers  *string
 			Files    []string
 		}
 		Link *struct {

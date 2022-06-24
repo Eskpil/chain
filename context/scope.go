@@ -174,6 +174,12 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 		}
 	}
 
+	if (compilerName == "clang" || compilerName == "gcc") && procedure.Procedure.Build.Headers != nil {
+		if *procedure.Procedure.Build.Headers == "." {
+			cflags = append(cflags, fmt.Sprintf("-I%s", s.Prefix))
+		}
+	}
+
 	for _, f := range procedure.Procedure.Build.Files {
 		buildFiles = append(buildFiles, path.Join(s.Prefix, f))
 	}

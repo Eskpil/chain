@@ -1,7 +1,6 @@
 project:
   name: "Test"
   procedures: 
-      - "cargo-test"
       - "library"
       - "src"
       - "rust"

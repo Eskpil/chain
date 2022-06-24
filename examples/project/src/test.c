@@ -1,5 +1,6 @@
 #include <cairo.h>
 #include <math.h>
+#include "hole/test.h"
 
 void
 draw_stars (cairo_t *cr, int width, int height);

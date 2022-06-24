@@ -2,6 +2,7 @@ procedure:
   name: "src"
   build:
     compiler: "clang"
+    headers: "."
     files:
       - "test.c"
   link:
