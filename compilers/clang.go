@@ -18,16 +18,16 @@ func (c Clang) Compile(in string, out string, cflags []string) error {
 		args = append(args, flag)
 	}
 
-	cmd := exec.Command(c.Path, args...)
+	command := exec.Command(c.Path, args...)
 
-	cmd.Env = os.Environ()
+	command.Env = os.Environ()
 
-	output, err := cmd.CombinedOutput()
+	output, err := command.CombinedOutput()
 
 	if err != nil {
 		logger.Error.Printf("Error when compiling file: %s\n", in)
 		logger.PrintError(string(output))
-		return err
+		os.Exit(1)
 	}
 
 	return nil
@@ -45,16 +45,16 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 
 	args = append(args, in...)
 
-	cmd := exec.Command(c.Path, args...)
+	command := exec.Command(c.Path, args...)
 
-	cmd.Env = os.Environ()
+	command.Env = os.Environ()
 
-	output, err := cmd.CombinedOutput()
+	output, err := command.CombinedOutput()
 
 	if err != nil {
 		logger.Error.Printf("Error when linking binary: %s\n", out)
 		logger.PrintError(string(output))
-		return err
+		os.Exit(1)
 	}
 
 	return nil
@@ -72,16 +72,16 @@ func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
 
 	args = append(args, in...)
 
-	cmd := exec.Command(c.Path, args...)
+	command := exec.Command(c.Path, args...)
 
-	cmd.Env = os.Environ()
+	command.Env = os.Environ()
 
-	output, err := cmd.CombinedOutput()
+	output, err := command.CombinedOutput()
 
 	if err != nil {
 		logger.Error.Printf("Error when linking dynamic library: %s\n", out)
 		logger.PrintError(string(output))
-		return err
+		os.Exit(1)
 	}
 
 	return nil
