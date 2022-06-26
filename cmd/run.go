@@ -4,7 +4,6 @@ import (
 	"chain/context"
 	"chain/logger"
 	"chain/structures"
-	"chain/util"
 	"fmt"
 	"os"
 
@@ -69,53 +68,8 @@ to quickly create a Cobra application.`,
 
 			project.Validate(args[0])
 
-			compilers := make(map[string]structures.Compiler)
+			scope.RunProject(&project)
 
-			for _, c := range util.LoadDefaultCompilers().Compilers {
-				compilers[c.Name] = c
-			}
-
-			if project.Project.Compilers != nil {
-				structure := structures.LoadCompilersFrom(*project.Project.Compilers)
-
-				for _, compiler := range structure.Compilers {
-					compilers[compiler.Name] = compiler
-				}
-			}
-
-			scope.Compilers = compilers
-
-			logger.Info.Printf("Running all procedures for project: %s\n", args[0])
-
-			for _, s := range *project.Project.Procedures {
-				filepath := fmt.Sprintf("%s/procedure.yml", s)
-
-				data, err = os.ReadFile(filepath)
-
-				if err != nil {
-					logger.Error.Printf("Unexpected error when reading data\n")
-					logger.PrintError(fmt.Sprintf("%s\n", err))
-					os.Exit(1)
-				}
-
-				procedure := structures.ProcedureStructure{}
-
-				err := yaml.Unmarshal(data, &procedure)
-
-				if err != nil {
-					logger.Error.Printf("Unexpected error when unmarshaling data\n")
-					logger.PrintError(fmt.Sprintf("%s\n", err))
-					os.Exit(1)
-				}
-
-				procedure.Validate(filepath)
-
-				childScope := context.Scope{}
-
-				childScope.InheritFrom(&scope, s)
-
-				childScope.RunProcedure(procedure)
-			}
 		}
 	},
 }

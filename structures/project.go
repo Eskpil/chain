@@ -7,9 +7,10 @@ import (
 
 type ProjectStructure struct {
 	Project struct {
-		Name       *string
-		Procedures *[]string
-		Compilers  *string
+		Name        *string
+		Procedures  *[]string
+		Compilers   *string
+		SubProjects []string
 	}
 }
 

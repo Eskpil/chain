@@ -1,0 +1,12 @@
+procedure:
+  name: "Awesome"
+  build:
+    files:
+      - "main.c"
+    compiler: "clang"
+    
+  link:
+    files: 
+      - "main.o"
+    linker: "linker"
+    into: "main"
