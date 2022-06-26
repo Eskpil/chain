@@ -1,4 +1,6 @@
 #include <cairo.h>
+#include <library.h>
+
 #include <math.h>
 #include "hole/test.h"
 

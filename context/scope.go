@@ -254,6 +254,8 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 
 			library.Name = procedure.Procedure.Library.Name
 
+			library.Cflags = []string{fmt.Sprintf("-I%s", s.Prefix)}
+
 			libpath := s.BuildDir
 
 			library.Libs = []string{fmt.Sprintf("-Wl,-rpath,%s", libpath), fmt.Sprintf("%s/%s.so", libpath, procedure.Procedure.Link.Target)}
@@ -262,6 +264,7 @@ func (s Scope) RunProcedure(procedure structures.ProcedureStructure) {
 		}
 
 	}
+
 	if procedure.Procedure.Export != nil {
 		for _, e := range procedure.Procedure.Export {
 			s.ExportLibrary(e)
