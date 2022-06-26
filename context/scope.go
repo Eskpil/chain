@@ -20,12 +20,6 @@ type Scope struct {
 	Compilers map[string]structures.Compiler
 }
 
-func (s *Scope) ExportInto(parent *Scope) {
-	for _, library := range s.Libraries {
-		parent.Libraries = append(parent.Libraries, library)
-	}
-}
-
 func (s *Scope) InheritFrom(parent *Scope, prefix string) {
 	s.Prefix = path.Join(parent.Prefix, prefix)
 	s.BuildDir = path.Join(parent.BuildDir, prefix)
