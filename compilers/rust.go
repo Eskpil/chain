@@ -2,7 +2,6 @@ package compilers
 
 import (
 	"chain/logger"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -27,8 +26,9 @@ func (c Rust) Compile(in string, out string, cflags []string) error {
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		fmt.Printf("Error when compiling file: %s:\n%s", in, output)
-		return err
+		logger.Error.Printf("Error when compiling file: %s\n", in)
+		logger.PrintError(string(output))
+		os.Exit(1)
 	}
 
 	return nil
