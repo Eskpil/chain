@@ -28,6 +28,7 @@ func (c Rust) Compile(in string, out string, cflags []string) error {
 	if err != nil {
 		logger.Error.Printf("Error when compiling file: %s\n", in)
 		logger.PrintError(string(output))
+		logger.Error.Printf("Err: %v\n", err)
 		os.Exit(1)
 	}
 
