@@ -41,6 +41,8 @@ to quickly create a Cobra application.`,
 			Parent:   nil,
 			BuildDir: "bld",
 			Prefix:   ".",
+
+			Root: true,
 		}
 
 		if isProcedure {

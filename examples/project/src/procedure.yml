@@ -1,6 +1,9 @@
 procedure:
   name: "src"
   build:
+    hook: 
+      - "headers"
+
     compiler: "clang"
     headers: "."
     files:
@@ -9,7 +12,7 @@ procedure:
     files:
       - "test.o"
     into: "bin"
-    linker: "linker"
+    linker: "clang"
     with:
       - name: "EpicLibrary"
         kind: "exported"

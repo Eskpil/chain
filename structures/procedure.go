@@ -9,6 +9,7 @@ type ProcedureStructure struct {
 	Procedure *struct {
 		Name  *string
 		Build *struct {
+			Hook     []string
 			Compiler string
 			Headers  *string
 			Files    []string

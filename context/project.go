@@ -25,6 +25,10 @@ func (s *Scope) RunProject(project *structures.ProjectStructure) {
 		}
 	}
 
+	if s.Root {
+		s.LoadHooks()
+	}
+
 	s.Compilers = compilers
 
 	logger.Info.Printf("Running all procedures for project: %s\n", *project.Project.Name)

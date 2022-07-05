@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "HELLO!"
+echo $CHAIN_SOURCES
+echo $CHAIN_HEADERS

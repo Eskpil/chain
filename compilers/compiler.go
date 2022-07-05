@@ -1,6 +1,10 @@
 package compilers
 
-import "chain/structures"
+import (
+	"chain/logger"
+	"chain/structures"
+	"os"
+)
 
 type Compiler interface {
 	Compile(in string, out string, cflags []string) error
@@ -25,18 +29,40 @@ func CompilerFromName(name string) Compiler {
 
 }
 
+func ResolvePathSymlink(path string) string {
+	fileInfo, err := os.Stat(path)
+
+	if err != nil {
+		logger.Error.Printf("Failed to stat path: %s: %s\n", path, err)
+		os.Exit(1)
+	}
+
+	if fileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
+		res, err := os.Readlink(path)
+
+		if err != nil {
+			logger.Error.Println("Failed to resolve symlink: ", err)
+			os.Exit(1)
+		}
+
+		return res
+	} else {
+		return path
+	}
+
+}
+
 func CompilerFromStructure(structure structures.Compiler) Compiler {
 	if structure.Name == "rust" {
 		rust := Rust{
-			Path:  structure.Path,
+			Path:  ResolvePathSymlink(structure.Path),
 			Flags: structure.Flags,
 		}
 
 		return rust
 	}
-
 	clang := Clang{
-		Path:  structure.Path,
+		Path:  ResolvePathSymlink(structure.Path),
 		Flags: structure.Flags,
 	}
 

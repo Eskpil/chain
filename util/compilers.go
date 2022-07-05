@@ -11,7 +11,7 @@ func LoadDefaultCompilers() structures.CompilersStructure {
 	}
 
 	linker := structures.Compiler{
-		Name:     "clang",
+		Name:     "linker",
 		Path:     "/usr/bin/clang",
 		Language: "c/c++/rust",
 		Flags:    []string{},

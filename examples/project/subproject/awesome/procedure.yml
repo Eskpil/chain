@@ -8,5 +8,6 @@ procedure:
   link:
     files: 
       - "main.o"
+
     linker: "linker"
     into: "main"
