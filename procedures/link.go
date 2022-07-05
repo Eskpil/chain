@@ -2,7 +2,6 @@ package procedures
 
 import (
 	"chain/compilers"
-	"os"
 )
 
 type Target int64
@@ -30,11 +29,6 @@ func (p LinkProcedure) RunProcedure() error {
 
 	if err != nil {
 		return err
-	}
-
-	// Remove all the object files as we dont really need them.
-	for _, s := range p.Files {
-		os.Remove(s)
 	}
 
 	return nil

@@ -10,6 +10,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 func (s Scope) GetLibraries(procedure structures.ProcedureStructure) []compilers.Library {
@@ -59,7 +61,12 @@ func (s Scope) GetLibraries(procedure structures.ProcedureStructure) []compilers
 	return libraries
 }
 
-func (s Scope) RunBuildHooks(procedure structures.ProcedureStructure) {
+type hookConfig struct {
+	Sources string
+	Headers string
+}
+
+func (s Scope) RunBuildHooks(procedure structures.ProcedureStructure) hookConfig {
 	cwd, err := os.Getwd()
 
 	if err != nil {
@@ -67,8 +74,16 @@ func (s Scope) RunBuildHooks(procedure structures.ProcedureStructure) {
 		os.Exit(1)
 	}
 
-	headersDir := fmt.Sprintf("%s/%s/__headers__", cwd, s.BuildDir)
-	sourcesDir := fmt.Sprintf("%s/%s/__sources__", cwd, s.BuildDir)
+	headersDir := path.Join(cwd, s.BuildDir, "__headers__")
+	sourcesDir := path.Join(cwd, s.BuildDir, "__sources__")
+
+	if _, err := os.Stat(headersDir); os.IsNotExist(err) {
+		os.Mkdir(headersDir, 0777)
+	}
+
+	if _, err := os.Stat(sourcesDir); os.IsNotExist(err) {
+		os.Mkdir(sourcesDir, 0777)
+	}
 
 	env := os.Environ()
 
@@ -106,15 +121,37 @@ func (s Scope) RunBuildHooks(procedure structures.ProcedureStructure) {
 			os.Exit(1)
 		}
 	}
+
+	filepath.Walk(sourcesDir, func(filePath string, info os.FileInfo, err error) error {
+		if err != nil {
+			logger.Error.Println("Failed walk __sources__ directory: ", err)
+			os.Exit(1)
+		}
+
+		if sourcesDir == filePath {
+			return nil
+		}
+
+		output := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())) + ".o"
+
+		output = strings.Replace("__"+output, "/", "_", 12)
+
+		compiler := s.DecideCompiler(procedure)
+
+		compiler.Compile(filePath, path.Join(s.ObjectsDir, output), []string{})
+
+		return nil
+	})
+
+	config := hookConfig{
+		Sources: sourcesDir,
+		Headers: headersDir,
+	}
+
+	return config
 }
 
-func (s *Scope) RunBuildSubProcedure(procedure structures.ProcedureStructure) {
-	s.RunBuildHooks(procedure)
-
-	var err error
-
-	libraries := s.GetLibraries(procedure)
-
+func (s Scope) DecideCompiler(procedure structures.ProcedureStructure) compilers.Compiler {
 	structure := structures.Compiler{}
 
 	compilerName := procedure.Procedure.Build.Compiler
@@ -125,9 +162,24 @@ func (s *Scope) RunBuildSubProcedure(procedure structures.ProcedureStructure) {
 		}
 	}
 
+	if structure.Path == "" {
+		logger.Error.Println("Unable to find compiler: ", compilerName)
+		os.Exit(1)
+	}
+
 	compiler := compilers.CompilerFromStructure(structure)
 
-	buildFiles := []string{}
+	return compiler
+}
+
+func (s *Scope) RunBuildSubProcedure(procedure structures.ProcedureStructure) {
+	config := s.RunBuildHooks(procedure)
+
+	var err error
+
+	libraries := s.GetLibraries(procedure)
+
+	compiler := s.DecideCompiler(procedure)
 
 	var cflags []string
 
@@ -137,19 +189,31 @@ func (s *Scope) RunBuildSubProcedure(procedure structures.ProcedureStructure) {
 		}
 	}
 
-	if (structure.Language == "c/c++") && procedure.Procedure.Build.Headers != nil {
+	if (compiler.Language() == "c/c++") && procedure.Procedure.Build.Headers != nil {
 		if *procedure.Procedure.Build.Headers == "." {
 			cflags = append(cflags, fmt.Sprintf("-I%s", s.Prefix))
+			cflags = append(cflags, fmt.Sprintf("-I%s", config.Headers))
 		}
 	}
 
+	buildFiles := []string{}
+	rawFiles := []string{}
+
 	for _, f := range procedure.Procedure.Build.Files {
 		buildFiles = append(buildFiles, path.Join(s.Prefix, f))
+		rawFiles = append(rawFiles, f)
+	}
+
+	buildDir := s.ObjectsDir
+
+	if compiler.Language() == "rust" {
+		buildDir = s.BuildDir
 	}
 
 	buildProcedure := procedures.BuildProcedure{
 		Files:    buildFiles,
-		BuildDir: s.BuildDir,
+		Raw:      rawFiles,
+		BuildDir: buildDir,
 		Cflags:   cflags,
 		Compiler: compiler,
 	}
@@ -177,9 +241,20 @@ func (s *Scope) RunLinkSubProcedure(procedure structures.ProcedureStructure) {
 
 	linkFiles := []string{}
 
-	for _, f := range procedure.Procedure.Link.Files {
-		linkFiles = append(linkFiles, path.Join(s.BuildDir, f))
-	}
+	filepath.Walk(s.ObjectsDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			logger.Error.Println("Failed walk __sources__ directory: ", err)
+			os.Exit(1)
+		}
+
+		if s.ObjectsDir == path {
+			return nil
+		}
+
+		linkFiles = append(linkFiles, path)
+
+		return nil
+	})
 
 	structure := structures.Compiler{}
 

@@ -12,6 +12,10 @@ type Rust struct {
 	Flags []string
 }
 
+func (c Rust) Language() string {
+	return "rust"
+}
+
 func (c Rust) Compile(in string, out string, cflags []string) error {
 	out = strings.Split(out, ".")[0]
 	args := []string{"-o", out, in}

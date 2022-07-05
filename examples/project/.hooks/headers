@@ -1,5 +1,23 @@
 #!/bin/sh
 
 echo "HELLO!"
+
 echo $CHAIN_SOURCES
 echo $CHAIN_HEADERS
+
+touch "$CHAIN_SOURCES/test.c"
+
+FILE="$CHAIN_SOURCES/test.c"
+
+#include <stdio.h>\nvoid main(){\printf("Hello, World");\n}
+
+if [ -f "$FILE" ]; then
+    rm $FILE
+else
+    touch $FILE
+fi
+
+echo "#include <stdio.h>
+void test_2() { 
+    printf(\"Hello, World\");
+}" >> $FILE

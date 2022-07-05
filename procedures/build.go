@@ -2,24 +2,26 @@ package procedures
 
 import (
 	"chain/compilers"
-	"fmt"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
 type BuildProcedure struct {
 	Files    []string
+	Raw      []string
 	Cflags   []string
 	BuildDir string
 	Compiler compilers.Compiler
 }
 
 func (p BuildProcedure) RunProcedure() error {
-	for _, s := range p.Files {
-		raw := strings.Split(path.Base(s), ".")
-		output := path.Join(p.BuildDir, fmt.Sprintf("%s.o", raw[0]))
+	for i, s := range p.Files {
+		output := strings.TrimSuffix(p.Raw[i], filepath.Ext(p.Raw[i])) + ".o"
 
-		p.Compiler.Compile(s, output, p.Cflags)
+		output = strings.Replace(output, "/", "_", 12)
+
+		p.Compiler.Compile(s, path.Join(p.BuildDir, output), p.Cflags)
 	}
 
 	return nil

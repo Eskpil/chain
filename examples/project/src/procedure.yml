@@ -8,9 +8,13 @@ procedure:
     headers: "."
     files:
       - "test.c"
+      - "hole/hole.c"
+
+
   link:
     files:
       - "test.o"
+
     into: "bin"
     linker: "clang"
     with:

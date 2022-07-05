@@ -11,9 +11,12 @@ import (
 )
 
 type Scope struct {
-	Parent    *Scope
-	Prefix    string
-	BuildDir  string
+	Parent *Scope
+
+	Prefix     string
+	BuildDir   string
+	ObjectsDir string
+
 	Libraries []compilers.Library
 	Compilers map[string]structures.Compiler
 
@@ -22,15 +25,27 @@ type Scope struct {
 }
 
 func (s *Scope) InheritFrom(parent *Scope, prefix string) {
+
+	cwd, err := os.Getwd()
+
+	if err != nil {
+		logger.Error.Println("Failed to get curent working directory.", err)
+	}
+
 	s.Prefix = path.Join(parent.Prefix, prefix)
 	s.BuildDir = path.Join(parent.BuildDir, prefix)
+	s.ObjectsDir = path.Join(parent.BuildDir, prefix, "__objects__")
 
-	if _, err := os.Stat(parent.BuildDir); os.IsNotExist(err) {
+	if _, err := os.Stat(path.Join(cwd, parent.BuildDir)); os.IsNotExist(err) {
 		os.Mkdir(parent.BuildDir, 0777)
 	}
 
-	if _, err := os.Stat(s.BuildDir); os.IsNotExist(err) {
+	if _, err := os.Stat(path.Join(cwd, s.BuildDir)); os.IsNotExist(err) {
 		os.Mkdir(s.BuildDir, 0777)
+	}
+
+	if _, err := os.Stat(path.Join(cwd, s.ObjectsDir)); os.IsNotExist(err) {
+		os.Mkdir(path.Join(cwd, s.ObjectsDir), 0777)
 	}
 
 	s.Compilers = parent.Compilers

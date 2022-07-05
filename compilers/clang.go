@@ -11,6 +11,10 @@ type Clang struct {
 	Flags []string
 }
 
+func (c Clang) Language() string {
+	return "c/c++"
+}
+
 func (c Clang) Compile(in string, out string, cflags []string) error {
 	logger.Info.Printf("Compiling: %s\n", in)
 	args := []string{"-o", out, "-c", in}
@@ -62,6 +66,7 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 
 	if err != nil {
 		logger.Error.Printf("Error when linking binary: %s\n", out)
+		logger.Error.Println("Error: ", err)
 		logger.PrintError(string(output))
 		os.Exit(1)
 	}
