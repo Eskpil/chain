@@ -172,7 +172,7 @@ func (s Scope) DecideCompiler(procedure structures.ProcedureStructure) compilers
 	return compiler
 }
 
-func (s *Scope) RunBuildSubProcedure(procedure structures.ProcedureStructure) {
+func (s *Scope) RunBuildSubProcedure(procedure structures.ProcedureStructure) []string {
 	config := s.RunBuildHooks(procedure)
 
 	var err error
@@ -224,9 +224,11 @@ func (s *Scope) RunBuildSubProcedure(procedure structures.ProcedureStructure) {
 		logger.Error.Printf("Failed to run subprocedure build: ", err)
 		os.Exit(1)
 	}
+
+	return cflags
 }
 
-func (s *Scope) RunLinkSubProcedure(procedure structures.ProcedureStructure) {
+func (s *Scope) RunLinkSubProcedure(procedure structures.ProcedureStructure, cflags []string) {
 	var err error
 
 	libraries := s.GetLibraries(procedure)
@@ -289,7 +291,7 @@ func (s *Scope) RunLinkSubProcedure(procedure structures.ProcedureStructure) {
 
 		library.Name = procedure.Procedure.Library.Name
 
-		library.Cflags = []string{fmt.Sprintf("-I%s", s.Prefix)}
+		library.Cflags = cflags
 
 		libpath := s.BuildDir
 
@@ -310,10 +312,10 @@ func (s *Scope) RunLinkSubProcedure(procedure structures.ProcedureStructure) {
 func (s *Scope) RunProcedure(procedure structures.ProcedureStructure) {
 	logger.Info.Printf("Running procedure: %s\n", *procedure.Procedure.Name)
 
-	s.RunBuildSubProcedure(procedure)
+	cflags := s.RunBuildSubProcedure(procedure)
 
 	if procedure.Procedure.Link != nil {
-		s.RunLinkSubProcedure(procedure)
+		s.RunLinkSubProcedure(procedure, cflags)
 	}
 
 	if procedure.Procedure.Export != nil {
