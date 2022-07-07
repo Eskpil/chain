@@ -35,7 +35,7 @@ func (s *Scope) RunProject(project *structures.ProjectStructure) {
 
 	if len(project.Project.SubProjects) > 0 {
 		for _, path := range project.Project.SubProjects {
-			filepath := fmt.Sprintf("%s/project.yml", path)
+			filepath := fmt.Sprintf("%s/%s/project.yml", s.Prefix, path)
 
 			data, err := os.ReadFile(filepath)
 
@@ -59,33 +59,35 @@ func (s *Scope) RunProject(project *structures.ProjectStructure) {
 		}
 	}
 
-	for _, proc := range *project.Project.Procedures {
-		filepath := fmt.Sprintf("%s/%s/procedure.yml", s.Prefix, proc)
+	if len(project.Project.Procedures) > 0 {
+		for _, proc := range project.Project.Procedures {
+			filepath := fmt.Sprintf("%s/%s/procedure.yml", s.Prefix, proc)
 
-		data, err := os.ReadFile(filepath)
+			data, err := os.ReadFile(filepath)
 
-		if err != nil {
-			logger.Error.Printf("Unexpected error when reading data\n")
-			logger.PrintError(fmt.Sprintf("%s\n", err))
-			os.Exit(1)
+			if err != nil {
+				logger.Error.Printf("Unexpected error when reading data\n")
+				logger.PrintError(fmt.Sprintf("%s\n", err))
+				os.Exit(1)
+			}
+
+			procedure := structures.ProcedureStructure{}
+
+			err = yaml.Unmarshal(data, &procedure)
+
+			if err != nil {
+				logger.Error.Printf("Unexpected error when unmarshaling data\n")
+				logger.PrintError(fmt.Sprintf("%s\n", err))
+				os.Exit(1)
+			}
+
+			procedure.Validate(filepath)
+
+			childScope := Scope{}
+
+			childScope.InheritFrom(s, proc)
+
+			childScope.RunProcedure(procedure)
 		}
-
-		procedure := structures.ProcedureStructure{}
-
-		err = yaml.Unmarshal(data, &procedure)
-
-		if err != nil {
-			logger.Error.Printf("Unexpected error when unmarshaling data\n")
-			logger.PrintError(fmt.Sprintf("%s\n", err))
-			os.Exit(1)
-		}
-
-		procedure.Validate(filepath)
-
-		childScope := Scope{}
-
-		childScope.InheritFrom(s, proc)
-
-		childScope.RunProcedure(procedure)
 	}
 }

@@ -76,7 +76,7 @@ func (c Clang) LinkBinary(in []string, out string, libraries []Library) error {
 
 func (c Clang) LinkLibrary(in []string, out string, libraries []Library) error {
 	logger.Info.Printf("Linking library: %s\n", out)
-	args := []string{"-shared", "-undefined", "dynamic_lookup", "-o", out}
+	args := []string{"-shared", "-o", out}
 
 	for _, flag := range c.Flags {
 		args = append(args, flag)

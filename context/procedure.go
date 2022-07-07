@@ -293,7 +293,14 @@ func (s *Scope) RunLinkSubProcedure(procedure structures.ProcedureStructure) {
 
 		libpath := s.BuildDir
 
-		library.Libs = []string{fmt.Sprintf("-Wl,-rpath,%s", libpath), fmt.Sprintf("%s/%s.so", libpath, procedure.Procedure.Link.Target)}
+		cwd, err := os.Getwd()
+
+		if err != nil {
+			logger.Error.Println("Failed to get cwd: ", err)
+			os.Exit(1)
+		}
+
+		library.Libs = []string{fmt.Sprintf("-Wl,-rpath,%s", libpath), fmt.Sprintf("%s/%s", path.Join(cwd, libpath), procedure.Procedure.Link.Into)}
 
 		s.Libraries = append(s.Libraries, library)
 	}
