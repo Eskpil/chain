@@ -22,10 +22,14 @@ Implemented features are as follows:
 3. Link with said libraries
 4. Scoped environments for declarations hence the need for exporting.
 5. Multiple compilers with clang and rustc.
+6. Hooks (Any language as long as they speak environment variables.)
+7. Cleaner and better written source code.
 
 Wanted features are as follows:
 
-1. Hooks (Any language as long as they speak environment variables.)
-2. Declare custom "pkg-config" package configurations.
-3. Cleaner and better written source code.
-4. More compilers. Current support compilers are clang and rustc.
+1. Declare custom "pkg-config" package configurations.
+2. More compilers. Current support compilers are clang and rustc.
+3. Support more formats like JSON or TOML for procedure and project
+   files.
+4. Running **chain .** and chain should be able to find project.yml and
+   run it.
