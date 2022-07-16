@@ -95,9 +95,9 @@ func (s Scope) RunBuildHooks(procedure structures.ProcedureStructure) hookConfig
 
 		hook = nil
 
-		for _, x := range s.Hooks {
-			if x.Name == name {
-				hook = &x
+		for i := range s.Hooks {
+			if s.Hooks[i].Name == name {
+				hook = &s.Hooks[i]
 			}
 		}
 
@@ -106,7 +106,7 @@ func (s Scope) RunBuildHooks(procedure structures.ProcedureStructure) hookConfig
 			os.Exit(1)
 		}
 
-		logger.Info.Println("Running build hook: ", name)
+		logger.Info.Println("Running build hook: ", hook.Name)
 
 		args := []string{}
 		command := exec.Command(hook.Path, args...)

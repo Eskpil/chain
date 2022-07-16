@@ -61,6 +61,12 @@ func (s *Scope) InheritFrom(parent *Scope, prefix string) {
 	}
 }
 
+func (s *Scope) ExportUpwards() {
+	for _, l := range s.Libraries {
+		s.Parent.Libraries = append(s.Parent.Libraries, l)
+	}
+}
+
 func (s *Scope) ExportLibrary(name string) {
 	logger.Info.Printf("Exporting: %s\n", name)
 	if s.Parent == nil {

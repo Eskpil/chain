@@ -62,6 +62,8 @@ func (s *Scope) RunProject(project *structures.ProjectStructure) {
 			childScope.InheritFrom(s, proc)
 
 			childScope.RunProcedure(procedure)
+
+			childScope.ExportUpwards()
 		}
 	}
 
@@ -88,6 +90,8 @@ func (s *Scope) RunProject(project *structures.ProjectStructure) {
 			childScope.InheritFrom(s, path)
 
 			childScope.RunProject(&subproject)
+
+			childScope.ExportUpwards()
 		}
 	}
 }
