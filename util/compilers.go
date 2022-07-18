@@ -17,6 +17,13 @@ func LoadDefaultCompilers() structures.CompilersStructure {
 		Flags:    []string{},
 	}
 
+	sanitized_linker := structures.Compiler{
+		Name:     "sanitized-linker",
+		Path:     "/usr/bin/clang",
+		Language: "c/c++/rust",
+		Flags:    []string{"-fPIC", "-fsanitize=address,undefined"},
+	}
+
 	rustc := structures.Compiler{
 		Name:     "rust",
 		Path:     "/usr/bin/rustc",
@@ -28,6 +35,7 @@ func LoadDefaultCompilers() structures.CompilersStructure {
 
 	structure.Compilers = append(structure.Compilers, clang)
 	structure.Compilers = append(structure.Compilers, linker)
+	structure.Compilers = append(structure.Compilers, sanitized_linker)
 	structure.Compilers = append(structure.Compilers, rustc)
 
 	return structure
