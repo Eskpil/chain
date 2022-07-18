@@ -22,11 +22,8 @@ func (s Scope) GetLibraries(procedure structures.ProcedureStructure) []compilers
 			var result *compilers.Library = &compilers.Library{}
 
 			if with.Kind == "exported" {
-				for _, library := range s.Libraries {
-					if library.Name == with.Name {
-						result = &library
-					}
-				}
+				lib := s.Libraries[with.Name]
+				result = &lib
 			} else if with.Kind == "compiler" {
 				result.Name = with.Name
 				result.Libs = []string{fmt.Sprintf("-l%s", with.Name)}
@@ -304,7 +301,7 @@ func (s *Scope) RunLinkSubProcedure(procedure structures.ProcedureStructure, cfl
 
 		library.Libs = []string{fmt.Sprintf("-Wl,-rpath,%s", libpath), fmt.Sprintf("%s/%s", path.Join(cwd, libpath), procedure.Procedure.Link.Into)}
 
-		s.Libraries = append(s.Libraries, library)
+		s.Libraries[library.Name] = library
 	}
 
 }

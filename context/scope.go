@@ -17,7 +17,7 @@ type Scope struct {
 	BuildDir   string
 	ObjectsDir string
 
-	Libraries []compilers.Library
+	Libraries map[string]compilers.Library
 	Compilers map[string]structures.Compiler
 
 	Root  bool
@@ -25,7 +25,6 @@ type Scope struct {
 }
 
 func (s *Scope) InheritFrom(parent *Scope, prefix string) {
-
 	cwd, err := os.Getwd()
 
 	if err != nil {
@@ -49,6 +48,7 @@ func (s *Scope) InheritFrom(parent *Scope, prefix string) {
 	}
 
 	s.Compilers = parent.Compilers
+	s.Libraries = make(map[string]compilers.Library)
 	s.Root = false
 
 	for _, h := range parent.Hooks {
@@ -57,13 +57,13 @@ func (s *Scope) InheritFrom(parent *Scope, prefix string) {
 
 	s.Parent = parent
 	for _, l := range parent.Libraries {
-		s.Libraries = append(s.Libraries, l)
+		s.Libraries[l.Name] = l
 	}
 }
 
 func (s *Scope) ExportUpwards() {
 	for _, l := range s.Libraries {
-		s.Parent.Libraries = append(s.Parent.Libraries, l)
+		s.Parent.Libraries[l.Name] = l
 	}
 }
 
@@ -74,44 +74,37 @@ func (s *Scope) ExportLibrary(name string) {
 		return
 	}
 
-	result := -1
+	var library *compilers.Library
 
-	for i, s := range s.Libraries {
-		if s.Name == name {
-			result = i
+	for key, lib := range s.Libraries {
+		if key == name {
+			library = &lib
 		}
 	}
 
-	if 0 > result {
+	if library == nil {
 		logger.Error.Printf("Library: %s not found in current scope\n", name)
 		os.Exit(1)
 	}
 
-	library := s.Libraries[result]
-
-	s.Parent.Libraries = append(s.Parent.Libraries, library)
+	s.Parent.Libraries[library.Name] = *library
 }
 
-func (s Scope) FindLibrary(name string) {
-	logger.Info.Printf("Trying to find library: %s in current scope\n", name)
-	result := -1
+func (s Scope) FindLibrary(name string) *compilers.Library {
+	var library *compilers.Library
 
-	for i, s := range s.Libraries {
-		if s.Name == name {
-			result = i
+	for key, lib := range s.Libraries {
+		if key == name {
+			library = &lib
 		}
 	}
 
-	if 0 > result {
-		logger.Error.Printf("Current scope does not contain library: %s\n", name)
+	if library == nil {
+		logger.Error.Printf("Library: %s not found in current scope\n", name)
 		os.Exit(1)
 	}
 
-	logger.Info.Printf("Found library: %s in current scope\n", name)
-
-	library := s.Libraries[result]
-
-	s.Parent.Libraries = append(s.Parent.Libraries, library)
+	return library
 }
 
 func (s Scope) CargoProject(

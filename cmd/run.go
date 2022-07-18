@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"chain/compilers"
 	"chain/context"
 	"chain/logger"
 	"chain/structures"
@@ -44,6 +45,10 @@ to quickly create a Cobra application.`,
 
 			Root: true,
 		}
+
+		libraries := make(map[string]compilers.Library)
+
+		scope.Libraries = libraries
 
 		if isProcedure {
 			procedure := structures.ProcedureStructure{}
